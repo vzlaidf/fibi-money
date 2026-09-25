@@ -1,4 +1,4 @@
-package com.example.fibi_money
+package com.veidf.fibi_money
 
 import io.flutter.embedding.android.FlutterActivity
 

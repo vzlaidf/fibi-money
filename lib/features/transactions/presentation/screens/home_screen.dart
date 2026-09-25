@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app_theme.dart';
 import '../../../../core/theme/bloc/theme_bloc.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/transaction_bloc.dart';
 import '../widgets/add_transaction_sheet.dart';
 import '../widgets/balance_card.dart';
@@ -40,8 +41,9 @@ class HomeScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(title),
           actions: [
+            // Selector de tema claro / oscuro
             Padding(
-              padding: const EdgeInsets.only(right: 16.0),
+              padding: const EdgeInsets.only(right: 8.0),
               child: BlocBuilder<ThemeBloc, ThemeState>(
                 builder: (context, themeState) {
                   final brightness = Theme.of(context).brightness;
@@ -67,6 +69,9 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
+
+            // Acciones de usuario y cierre de sesión
+            _buildAuthActions(context),
           ],
         ),
         body: SingleChildScrollView(
@@ -121,5 +126,76 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildAuthActions(BuildContext context) {
+    try {
+      final authBloc = context.watch<AuthBloc>();
+      final state = authBloc.state;
+      if (!state.status.isAuthenticated || state.user == null) {
+        return const SizedBox.shrink();
+      }
+
+      final user = state.user!;
+      return Padding(
+        padding: const EdgeInsets.only(right: 12.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Indicador de usuario
+            Tooltip(
+              message: user.isAnonymous
+                  ? 'Modo Invitado'
+                  : (user.email ?? user.visibleName),
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Icon(
+                  user.isAnonymous
+                      ? Icons.person_outline
+                      : Icons.person_rounded,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+
+            // Botón de salir
+            IconButton(
+              icon: const Icon(Icons.logout_rounded, size: 20),
+              tooltip: 'Cerrar sesión',
+              onPressed: () => _confirmSignOut(context),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Future<void> _confirmSignOut(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro de que deseas cerrar tu sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && context.mounted) {
+      context.read<AuthBloc>().add(const AuthSignOutRequested());
+    }
   }
 }

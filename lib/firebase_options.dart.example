@@ -1,0 +1,28 @@
+// Plantilla de ejemplo para configuración de Firebase.
+// Copia este archivo como 'firebase_options.dart' y coloca tus credenciales reales.
+// ignore_for_file: type=lint
+import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
+
+/// Default [FirebaseOptions] for use with your Firebase apps.
+class DefaultFirebaseOptions {
+  static FirebaseOptions get currentPlatform {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return android;
+      default:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for this platform.',
+        );
+    }
+  }
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'YOUR_API_KEY_HERE',
+    appId: 'YOUR_APP_ID_HERE',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID_HERE',
+    projectId: 'fibi-money',
+    storageBucket: 'fibi-money.firebasestorage.app',
+  );
+}
